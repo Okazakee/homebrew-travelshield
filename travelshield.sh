@@ -350,6 +350,20 @@ show_menu() {
 # Main entry point
 # ─────────────────────────────
 main() {
+    case "${1:-}" in
+        --version|-V) echo "TravelShield 2.0.2"; exit 0 ;;
+        --help|-h)
+            echo "Usage: travelshield [--version|--help]"
+            echo "  --version, -V   Show version"
+            echo "  --help, -h      Show this help"
+            echo
+            echo "Run without arguments for the interactive TUI."
+            exit 0
+            ;;
+        "") ;;
+        *) echo "Unknown option: $1"; echo "Usage: travelshield [--version|--help]"; exit 1 ;;
+    esac
+
     clear
     printf "${BLUE}╔%s╗${NC}\n" "$(printf '═%.0s' $(seq 1 $BOX_W))"
     _box_row "${YELLOW}TravelShield — starting up...${NC}"

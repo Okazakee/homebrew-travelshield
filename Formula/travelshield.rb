@@ -30,7 +30,6 @@ class Travelshield < Formula
   end
 
   test do
-    output = shell_output("#{bin}/travelshield 2>&1", 1)
-    assert_match "TravelShield", output
+    assert_match "TravelShield", shell_output("#{bin}/travelshield --version")
   end
 end

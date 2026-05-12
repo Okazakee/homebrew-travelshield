@@ -327,9 +327,12 @@ main() {
     esac
 
     # Check TPM presence
-    if ! [[ -e /dev/tpm0 ]] || ! sudo tpm2_getcap properties-fixed &>/dev/null; then
-        print_error "No TPM2 device detected or accessible."
+    if ! [[ -e /dev/tpm0 ]] && ! [[ -e /dev/tpmrm0 ]]; then
+        print_error "No TPM2 device detected (/dev/tpm0 or /dev/tpmrm0 missing)."
         exit 1
+    fi
+    if command -v tpm2_getcap &>/dev/null && ! sudo tpm2_getcap properties-fixed &>/dev/null 2>&1; then
+        print_warning "tpm2_getcap failed, but TPM device node exists. Continuing..."
     fi
 
     # Find LUKS device

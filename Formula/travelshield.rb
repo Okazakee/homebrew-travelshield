@@ -4,6 +4,8 @@ class Travelshield < Formula
   homepage "https://github.com/Okazakee/homebrew-travelshield"
   url "https://github.com/Okazakee/homebrew-travelshield/archive/refs/tags/v1.1.1.tar.gz"
   sha256 "b857e224c70cb92caeaa3fb811499ff239aba9f7868f738c2b480e39fa3881e7"
+
+  head "https://github.com/Okazakee/homebrew-travelshield.git", branch: "main"
   license "Unlicense"
 
   def install

@@ -1,36 +1,38 @@
-```
-╔══════════════════════════════════════╗
-║  :: TravelShield ::                 ║
-║  TPM2 LUKS Travel Mode Manager      ║
-╚══════════════════════════════════════╝
-```
+# 🛡️ TravelShield
 
-# TravelShield – TPM2 LUKS Travel Mode Manager
+> **TPM2 LUKS Travel Mode Manager** — Arm your disk encryption for the road. One keystroke to lock it down.
 
-**Arm your disk encryption for the road. One keystroke to lock it down.**
+TravelShield detects whether TPM2 auto-unlock is active on your LUKS-encrypted root filesystem and lets you toggle **Travel Mode** on or off instantly — no Enter key required.
 
-TravelShield detects whether TPM2 auto-unlock is active on your LUKS-encrypted root
-filesystem and lets you toggle **Travel Mode** on or off instantly — no Enter key required.
+**Single-key navigation** • **PCR7 fingerprinting** • **Distro-agnostic** • **systemd-cryptenroll & clevis-luks**
 
-| Travel Mode ON | Travel Mode OFF |
-|---|---|
-| `[ARMED]` — TPM slot wiped | `[DISARMED]` — TPM slot enrolled |
-| Passphrase required at boot | Auto-unlock via TPM2 |
-| Safe for border crossings | Convenient at home |
+---
 
 ## Why TravelShield?
 
-Crossing a border? Attending a conference? Leaving your laptop unattended? With the
-TPM slot active, anyone who powers on your machine gets straight to the desktop.
-TravelShield lets you temporarily **disable TPM auto-unlock** so only your LUKS
-passphrase can decrypt the disk. When you're back home, re-enable it with the same tool.
+TPM2 auto-unlock is convenient at home: you power on and the disk decrypts silently. But when you travel, that same convenience becomes a liability.
 
-- **Single-key navigation** — tap `T`/`R`/`S`/`Q`, no Enter needed
-- **Colored status** — green `[DISARMED]` or red `[ARMED]` at a glance
-- **PCR7 fingerprinting** — detects stale bindings after BIOS/firmware updates
-- **Distro-agnostic** — works on Arch, Debian, Fedora, openSUSE, Void, Alpine, and more
-- **Dual backend** — `systemd-cryptenroll` or `clevis-luks` + `tpm2-tools`
-- **Initramfs reminder** — detects mkinitcpio, dracut, or update-initramfs and tells you what to run
+**Crossing a border?** Attending a conference? Leaving your laptop in a hotel room?
+
+With the TPM slot active, anyone who powers on your machine gets straight to the desktop. TravelShield lets you temporarily **disable TPM auto-unlock** so only your LUKS passphrase can decrypt the disk. When you're back in a safe place, re-enable it with the same tool.
+
+[Background reading: Unlocking LUKS2 volumes with TPM2, FIDO2, PKCS#11 security hardware on systemd ≥ 248](https://0pointer.net/blog/unlocking-luks2-volumes-with-tpm2-fido2-pkcs11-security-hardware-on-systemd-248.html)
+
+---
+
+## Travel Mode States
+
+### 🔴 [ARMED] — ON
+- TPM slot wiped
+- Passphrase required at boot
+- Safe for border crossings, transit, shared spaces
+
+### 🟢 [DISARMED] — OFF
+- TPM slot enrolled
+- Auto-unlock via TPM2
+- Convenient at home or in a trusted environment
+
+---
 
 ## Quick Start
 
@@ -38,8 +40,7 @@ passphrase can decrypt the disk. When you're back home, re-enable it with the sa
 sudo travelshield
 ```
 
-The script auto-detects your backend, locates your root LUKS device, and drops you
-into the menu:
+The script auto-detects your backend, locates your root LUKS device, and drops you into an interactive menu:
 
 ```
 ╔══════════════════════════════════════════════╗
@@ -57,6 +58,25 @@ into the menu:
 > 
 ```
 
+---
+
+## Installation
+
+### 📦 Homebrew (Linuxbrew)
+```bash
+brew tap Okazakee/travelshield
+brew install travelshield
+```
+
+### 📥 Direct Download
+```bash
+curl -O https://raw.githubusercontent.com/Okazakee/homebrew-travelshield/main/travelshield.sh
+chmod +x travelshield.sh
+sudo ./travelshield.sh
+```
+
+---
+
 ## Requirements
 
 - Linux host with TPM 2.0 (`/dev/tpm0` or `/dev/tpmrm0`)
@@ -66,22 +86,29 @@ into the menu:
   - `clevis-luks` + `tpm2-tools`
 - Standard util-linux tools: `lsblk`, `findmnt`, `blkid`, `cryptsetup` (pre-installed on all distros)
 
-## Install
+---
 
-### Homebrew (Linuxbrew)
+## Technical Features
 
-```bash
-brew tap Okazakee/travelshield
-brew install travelshield
-```
+**systemd-cryptenroll**
+Primary backend. Uses built-in systemd ≥ 248 support to enroll or wipe TPM2 tokens on LUKS2 headers.
 
-### Direct download
+**clevis-luks**
+Fallback backend. Supports Clevis TPM2 policy bindings for distros not on systemd 248+.
 
-```bash
-curl -O https://raw.githubusercontent.com/Okazakee/homebrew-travelshield/main/travelshield.sh
-chmod +x travelshield.sh
-sudo ./travelshield.sh
-```
+**PCR7 Fingerprinting**
+Stores a SHA-256 hash of PCR7 after enrollment. Detects stale bindings after BIOS or firmware updates.
+
+**Initramfs Reminder**
+Auto-detects mkinitcpio, dracut, or update-initramfs and tells you exactly what to run before rebooting.
+
+**Distro-Agnostic Discovery**
+Locates your root LUKS device via lsblk, findmnt, and blkid — no hardcoded paths, works across Arch, Debian, Fedora, Void, Alpine, and more.
+
+**Single-Key TUI**
+No Enter key needed. Tap T, R, S, or Q. Colored status output gives instant clarity on system state.
+
+---
 
 ## How It Works
 
@@ -95,10 +122,10 @@ sudo ./travelshield.sh
 
 State is stored in `/var/lib/travelshield/pcr7.sha256`.
 
-## License
-
-This is free and unencumbered software released into the public domain. See [LICENSE](LICENSE).
-
 ---
 
-Built with care for the paranoid. [Contribute](https://github.com/Okazakee/homebrew-travelshield) or [report issues](https://github.com/Okazakee/homebrew-travelshield/issues).
+## License
+
+Built with care for the paranoid. Released into the public domain under [The Unlicense](https://unlicense.org/).
+
+**Source & Issues:** [github.com/Okazakee/homebrew-travelshield](https://github.com/Okazakee/homebrew-travelshield)

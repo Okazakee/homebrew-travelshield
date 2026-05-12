@@ -61,7 +61,7 @@ detect_luks_device() {
                 echo "/dev/mapper/$mapper"
                 return
             fi
-        done < /etc/crypttab
+        done < <(sudo cat /etc/crypttab 2>/dev/null)
     fi
 
     # 2. Work backwards from root mount

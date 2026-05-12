@@ -42,18 +42,18 @@ The script auto-detects your backend, locates your root LUKS device, and drops y
 into the menu:
 
 ```
-╔══════════════════════════════════════╗
-║  TravelShield   TPM2 LUKS Manager   ║
-╠══════════════════════════════════════╣
-║  Device : luks-abc123               ║
-║  Status : ARMED — passphrase req.   ║
-║  Backend: systemd-cryptenroll       ║
-╠══════════════════════════════════════╣
-║  [T] Toggle travel mode             ║
-║  [R] Re‑enroll TPM binding          ║
-║  [S] Show detailed status           ║
-║  [Q] Quit                           ║
-╚══════════════════════════════════════╝
+╔══════════════════════════════════════════════╗
+║  TravelShield   TPM2 LUKS Manager            ║
+╠══════════════════════════════════════════════╣
+║  Device : luks-abc123                        ║
+║  Status : ARMED — passphrase required        ║
+║  Backend: systemd-cryptenroll                ║
+╠══════════════════════════════════════════════╣
+║  [T] Toggle travel mode                      ║
+║  [R] Re-enroll TPM binding                   ║
+║  [S] Show detailed status                    ║
+║  [Q] Quit                                    ║
+╚══════════════════════════════════════════════╝
 > 
 ```
 

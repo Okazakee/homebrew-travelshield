@@ -16,14 +16,30 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-print_info()    { printf "${BLUE}  ▶${NC} %s\n" "$1"; }
-print_success() { printf "${GREEN}  ✔${NC} %s\n" "$1"; }
-print_warning() { printf "${YELLOW}  ⚡${NC} %s\n" "$1"; }
-print_error()   { printf "${RED}  ✘${NC} %s\n" "$1" >&2; }
+print_info()    { printf "${BLUE}  [i]${NC} %s\n" "$1"; }
+print_success() { printf "${GREEN}  [+]${NC} %s\n" "$1"; }
+print_warning() { printf "${YELLOW}  [!]${NC} %s\n" "$1"; }
+print_error()   { printf "${RED}  [x]${NC} %s\n" "$1" >&2; }
 
 # ── Single-key input (no Enter required) ──
 read_key()     { read -n 1 -r -s -- "$@"; }
 wait_any_key() { printf "\n${CYAN}  Press any key to continue...${NC}"; read -n 1 -r -s; echo; }
+
+# ── Box drawing helpers (fixed inner width = 44) ──
+BOX_W=44
+
+# Strip ANSI escape patterns (literal \033[...m) to compute visible length
+_strip_ansi() { printf '%s' "$1" | sed 's/\\033\[[0-9;]*m//g'; }
+
+# Print a bordered row.  Text is left-aligned, padded to BOX_W.
+# Uses %b so embedded \033 sequences are interpreted as colors.
+_box_row() {
+    local text="${1:-}" visible pad
+    visible=$(_strip_ansi "$text")
+    pad=$(( BOX_W - ${#visible} ))
+    [[ $pad -lt 0 ]] && pad=0
+    printf "${BLUE}║${NC} %b%*s${BLUE}║${NC}\n" "$text" "$pad" ""
+}
 
 # ── Global state ──
 TOOLCHAIN=""          # "systemd" or "clevis"
@@ -185,9 +201,9 @@ suggest_initramfs() {
 # ─────────────────────────────
 show_detailed_status() {
     clear
-    printf "${BLUE}╔══════════════════════════════════════════╗${NC}\n"
-    printf "${BLUE}║${NC}  ${YELLOW}TravelShield${NC} — Detailed Status           ${BLUE}║${NC}\n"
-    printf "${BLUE}╚══════════════════════════════════════════╝${NC}\n"
+    printf "${BLUE}╔%s╗${NC}\n" "$(printf '═%.0s' $(seq 1 $BOX_W))"
+    _box_row "${YELLOW}TravelShield — Detailed Status${NC}"
+    printf "${BLUE}╚%s╝${NC}\n" "$(printf '═%.0s' $(seq 1 $BOX_W))"
     echo
     printf "  LUKS device     : ${YELLOW}%s${NC}\n" "$LUKS_DEVICE"
     printf "  Raw device      : ${YELLOW}%s${NC}\n" "$RAW_LUKS_DEVICE"
@@ -217,9 +233,9 @@ show_detailed_status() {
 # ─────────────────────────────
 toggle_travel_mode() {
     clear
-    printf "${BLUE}╔══════════════════════════════════════════╗${NC}\n"
-    printf "${BLUE}║${NC}  ${YELLOW}TravelShield${NC} — Toggle Travel Mode        ${BLUE}║${NC}\n"
-    printf "${BLUE}╚══════════════════════════════════════════╝${NC}\n"
+    printf "${BLUE}╔%s╗${NC}\n" "$(printf '═%.0s' $(seq 1 $BOX_W))"
+    _box_row "${YELLOW}TravelShield — Toggle Travel Mode${NC}"
+    printf "${BLUE}╚%s╝${NC}\n" "$(printf '═%.0s' $(seq 1 $BOX_W))"
     echo
 
     if $CHECK_TPM_FN; then
@@ -257,13 +273,13 @@ toggle_travel_mode() {
 # ─────────────────────────────
 reenroll_binding() {
     clear
-    printf "${BLUE}╔══════════════════════════════════════════╗${NC}\n"
-    printf "${BLUE}║${NC}  ${YELLOW}TravelShield${NC} — Re‑enroll TPM Binding      ${BLUE}║${NC}\n"
-    printf "${BLUE}╚══════════════════════════════════════════╝${NC}\n"
+    printf "${BLUE}╔%s╗${NC}\n" "$(printf '═%.0s' $(seq 1 $BOX_W))"
+    _box_row "${YELLOW}TravelShield — Re-enroll TPM Binding${NC}"
+    printf "${BLUE}╚%s╝${NC}\n" "$(printf '═%.0s' $(seq 1 $BOX_W))"
     echo
     printf "  This will ${YELLOW}remove and re-add${NC} the TPM binding.\n"
     printf "  Use this after a BIOS update or when the token is stale.\n\n"
-    printf "  ${CYAN}[Y]${NC} Re‑enroll now   ${CYAN}[N]${NC} Go back\n"
+    printf "  ${CYAN}[Y]${NC} Re-enroll now   ${CYAN}[N]${NC} Go back\n"
     read_key key
     if [[ "${key,,}" != "y" ]]; then
         print_info "Cancelled."
@@ -286,28 +302,36 @@ reenroll_binding() {
 # ─────────────────────────────
 show_menu() {
     while true; do
-        local status_label status_color
+        local status_color status_text
         if $CHECK_TPM_FN; then
-            status_label="DISARMED — TPM auto-unlock active"
             status_color="${GREEN}"
+            status_text="DISARMED — TPM auto-unlock active"
         else
-            status_label="ARMED — passphrase required"
             status_color="${RED}"
+            status_text="ARMED — passphrase required"
         fi
 
         clear
-        printf "${BLUE}╔══════════════════════════════════════╗${NC}\n"
-        printf "${BLUE}║${NC}  ${YELLOW}TravelShield${NC}   TPM2 LUKS Manager     ${BLUE}║${NC}\n"
-        printf "${BLUE}╠══════════════════════════════════════╣${NC}\n"
-        printf "${BLUE}║${NC}  Device : ${CYAN}%-25s${NC} ${BLUE}║${NC}\n" "$(basename "$LUKS_DEVICE")"
-        printf "${BLUE}║${NC}  Status : %s%-31s${NC} ${BLUE}║${NC}\n" "$status_color" "$status_label"
-        printf "${BLUE}║${NC}  Backend: ${CYAN}%-25s${NC} ${BLUE}║${NC}\n" "$TOOLCHAIN"
-        printf "${BLUE}╠══════════════════════════════════════╣${NC}\n"
-        printf "${BLUE}║${NC}  ${CYAN}[T]${NC} Toggle travel mode              ${BLUE}║${NC}\n"
-        printf "${BLUE}║${NC}  ${CYAN}[R]${NC} Re‑enroll TPM binding          ${BLUE}║${NC}\n"
-        printf "${BLUE}║${NC}  ${CYAN}[S]${NC} Show detailed status           ${BLUE}║${NC}\n"
-        printf "${BLUE}║${NC}  ${CYAN}[Q]${NC} Quit                           ${BLUE}║${NC}\n"
-        printf "${BLUE}╚══════════════════════════════════════╝${NC}\n"
+        printf "${BLUE}╔%s╗${NC}\n" "$(printf '═%.0s' $(seq 1 $BOX_W))"
+        _box_row "${YELLOW}TravelShield   TPM2 LUKS Manager${NC}"
+        printf "${BLUE}╠%s╣${NC}\n" "$(printf '─%.0s' $(seq 1 $BOX_W))"
+
+        # Device row — fixed-width field
+        _box_row "${CYAN}Device : $(basename "$LUKS_DEVICE")${NC}"
+
+        # Status row — embed color directly in format string so ANSI is interpreted
+        local status_fmt="Status : ${status_color}${status_text}${NC}"
+        _box_row "$status_fmt"
+
+        # Backend row
+        _box_row "${CYAN}Backend: ${TOOLCHAIN}${NC}"
+
+        printf "${BLUE}╠%s╣${NC}\n" "$(printf '─%.0s' $(seq 1 $BOX_W))"
+        _box_row "${CYAN}[T] Toggle travel mode${NC}"
+        _box_row "${CYAN}[R] Re-enroll TPM binding${NC}"
+        _box_row "${CYAN}[S] Show detailed status${NC}"
+        _box_row "${CYAN}[Q] Quit${NC}"
+        printf "${BLUE}╚%s╝${NC}\n" "$(printf '═%.0s' $(seq 1 $BOX_W))"
         printf "  ${CYAN}>${NC} "
         read_key key
         echo
@@ -327,9 +351,10 @@ show_menu() {
 # ─────────────────────────────
 main() {
     clear
-    printf "${BLUE}╔══════════════════════════════════════╗${NC}\n"
-    printf "${BLUE}║${NC}  ${YELLOW}TravelShield${NC} — starting up...        ${BLUE}║${NC}\n"
-    printf "${BLUE}╚══════════════════════════════════════╝${NC}\n\n"
+    printf "${BLUE}╔%s╗${NC}\n" "$(printf '═%.0s' $(seq 1 $BOX_W))"
+    _box_row "${YELLOW}TravelShield — starting up...${NC}"
+    printf "${BLUE}╚%s╝${NC}\n" "$(printf '═%.0s' $(seq 1 $BOX_W))"
+    echo
 
     # ── Detect toolchain ──
     TOOLCHAIN=$(detect_toolchain)
@@ -350,8 +375,8 @@ main() {
             print_error "No supported TPM2 backend found."
             echo
             print_info "Install one of:"
-            print_info "  • systemd-cryptenroll (built into systemd ≥ 248)"
-            print_info "  • clevis-luks + tpm2-tools"
+            print_info "  * systemd-cryptenroll (built into systemd >= 248)"
+            print_info "  * clevis-luks + tpm2-tools"
             exit 1
             ;;
     esac

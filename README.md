@@ -63,7 +63,7 @@ TPM2 chip is present, and drops you into the menu:
 ### Direct download
 
 ```bash
-curl -O https://raw.githubusercontent.com/Okazakee/travelshield/main/travelshield.sh
+curl -O https://raw.githubusercontent.com/Okazakee/homebrew-travelshield/main/travelshield.sh
 chmod +x travelshield.sh
 sudo ./travelshield.sh
 ```
@@ -93,4 +93,4 @@ This is free and unencumbered software released into the public domain. See [LIC
 
 ---
 
-Built with care for the paranoid. [Contribute](https://github.com/Okazakee/travelshield) or [report issues](https://github.com/Okazakee/travelshield/issues).
+Built with care for the paranoid. [Contribute](https://github.com/Okazakee/homebrew-travelshield) or [report issues](https://github.com/Okazakee/homebrew-travelshield/issues).

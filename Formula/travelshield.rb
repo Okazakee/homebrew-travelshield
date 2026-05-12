@@ -1,8 +1,8 @@
 # Homebrew formula for TravelShield
 class Travelshield < Formula
   desc "Arm your disk encryption for the road — toggle TPM2 LUKS auto-unlock on/off with one command"
-  homepage "https://github.com/Okazakee/travelshield"
-  url "https://github.com/Okazakee/travelshield/archive/refs/tags/v1.0.0.tar.gz"
+  homepage "https://github.com/Okazakee/homebrew-travelshield"
+  url "https://github.com/Okazakee/homebrew-travelshield/archive/refs/tags/v1.0.0.tar.gz"
   sha256 "9dc156cef2f4ca2e720ea194b2e06def127db56055d9d92632896d1598a97204"
   license "Unlicense"
 

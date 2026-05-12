@@ -65,7 +65,7 @@ TPM2 chip is present, and drops you into the menu:
 ### Direct download
 
 ```bash
-curl -O https://raw.githubusercontent.com/USER/travel-mode-repo/main/travelshield.sh
+curl -O https://raw.githubusercontent.com/Okazakee/travel-mode-repo/main/travelshield.sh
 chmod +x travelshield.sh
 sudo ./travelshield.sh
 ```
@@ -73,11 +73,9 @@ sudo ./travelshield.sh
 ### Homebrew (Linuxbrew)
 
 ```bash
-brew tap USER/travel-mode-repo
+brew tap Okazakee/travel-mode-repo
 brew install travelshield
 ```
-
-Replace `USER` with your GitHub username.
 
 ## How It Works
 
@@ -97,4 +95,4 @@ This is free and unencumbered software released into the public domain. See [LIC
 
 ---
 
-Built with care for the paranoid. [Contribute](https://github.com/USER/travel-mode-repo) or [report issues](https://github.com/USER/travel-mode-repo/issues).
+Built with care for the paranoid. [Contribute](https://github.com/Okazakee/travel-mode-repo) or [report issues](https://github.com/Okazakee/travel-mode-repo/issues).

@@ -3,7 +3,7 @@
 # TravelShield - TPM2 LUKS Travel Mode Manager
 # Enhanced version with PCR fingerprinting and TUI menu
 # =============================================================================
-# Source: https://github.com/USER/travel-mode-repo
+# Source: https://github.com/Okazakee/travel-mode-repo
 
 set -euo pipefail
 

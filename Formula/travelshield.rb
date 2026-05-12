@@ -13,10 +13,25 @@ class Travelshield < Formula
     bin.install "travelshield.sh" => "travelshield"
   end
 
+  def post_install
+    brew_bin = HOMEBREW_PREFIX/"bin"
+    local_bin = Pathname("/usr/local/bin")
+
+    if local_bin.writable? && !(local_bin/"travelshield").exist?
+      local_bin.mkpath
+      FileUtils.ln_s brew_bin/"travelshield", local_bin/"travelshield"
+    end
+  rescue
+    nil
+  end
+
   def caveats
     <<~EOS
       TravelShield requires systemd-cryptenroll OR clevis-luks to manage TPM2 tokens.
       Install clevis with: brew install clevis
+
+      If the command is not found after install, add Homebrew to your PATH:
+        echo 'eval "$(#{HOMEBREW_PREFIX}/bin/brew shellenv)"' >> ~/.bashrc
 
       After toggling travel mode, rebuild your initramfs before rebooting.
       Run with: sudo travelshield

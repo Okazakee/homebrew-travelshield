@@ -51,31 +51,25 @@ detect_tpm_toolchain() {
 # LUKS device discovery (focus on root)
 # ─────────────────────────────
 detect_luks_device() {
-    # 1. /etc/crypttab entry with mountpoint /
-    if [[ -f /etc/crypttab ]]; then
-        while read -r mapper device _; do
-            [[ "$device" =~ ^/dev ]] || continue
-            local mp
-            mp=$(findmnt -nr -o TARGET "/dev/mapper/$mapper" 2>/dev/null | head -1)
-            if [[ "$mp" == "/" ]]; then
-                echo "/dev/mapper/$mapper"
-                return
-            fi
-        done < <(sudo cat /etc/crypttab 2>/dev/null)
+    # 1. lsblk — find mapped crypt devices (no sudo needed)
+    local mapped
+    mapped=$(lsblk -rno NAME,TYPE 2>/dev/null | awk '$2=="crypt"{print "/dev/mapper/"$1; exit}')
+    if [[ -n "$mapped" ]]; then
+        echo "$mapped"
+        return
     fi
 
     # 2. Work backwards from root mount
     local root_src
     root_src=$(findmnt -n -o SOURCE / 2>/dev/null)
     if [[ -n "$root_src" ]]; then
-        # If it's a dm-crypt device (mapper or dm-X)
         if [[ "$root_src" == /dev/mapper/* ]] || [[ "$root_src" == /dev/dm-* ]]; then
             echo "$root_src"
             return
         fi
     fi
 
-    # 3. fallback: blkid scan for crypto_LUKS (avoid if possible)
+    # 3. fallback: blkid scan for crypto_LUKS
     local dev
     dev=$(blkid -t TYPE=crypto_LUKS -o device 2>/dev/null | head -1)
     if [[ -n "$dev" ]]; then

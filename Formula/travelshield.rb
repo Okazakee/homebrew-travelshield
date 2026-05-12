@@ -5,8 +5,9 @@ class Travelshield < Formula
   url "https://github.com/Okazakee/homebrew-travelshield/archive/refs/tags/v2.0.1.tar.gz"
   sha256 "83c8be8722795ed28b5f0ac7367248487400c3548fa19e08990fbb0e99ac9d7c"
 
-  head "https://github.com/Okazakee/homebrew-travelshield.git", branch: "main"
   license "Unlicense"
+
+  head "https://github.com/Okazakee/homebrew-travelshield.git", branch: "main"
 
   def install
     bin.install "travelshield.sh" => "travelshield"
@@ -29,6 +30,7 @@ class Travelshield < Formula
   end
 
   test do
-    system "#{bin}/travelshield", "--help" rescue false
+    output = shell_output("#{bin}/travelshield 2>&1", 1)
+    assert_match "TravelShield", output
   end
 end

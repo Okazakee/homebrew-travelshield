@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Test stub for lsblk: reports a fixed crypt device.
+printf 'lsblk %s\n' "$*" >>"${TS_LOG:?}"
+echo "tsroot crypt"

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Test stub for findmnt: raw device is never mounted.
+printf 'findmnt %s\n' "$*" >>"${TS_LOG:?}"
+exit 1

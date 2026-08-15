@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Test stub for blkid.
+printf 'blkid %s\n' "$*" >>"${TS_LOG:?}"
+echo "/dev/sda3: UUID=\"${TS_UUID:-11111111-2222-3333-4444-555555555555}\" TYPE=\"crypto_LUKS\""

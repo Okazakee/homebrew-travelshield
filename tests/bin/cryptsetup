@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Test stub for cryptsetup operating on a virtual LUKS header.
+# TS_HEADER        = path to the virtual LUKS2 JSON metadata (mutated by stubs)
+# TS_LOG           = append-only command log
+# TS_CRYPTSETUP_FAIL=1 -> luksDump --dump-json-metadata fails
+# TS_LUKS1         =1 -> volume behaves like LUKS1 (no JSON metadata)
+# TS_UUID          = luksUUID value
+printf 'cryptsetup %s\n' "$*" >>"${TS_LOG:?}"
+case "$1" in
+    luksDump)
+        if [[ "${TS_LUKS1:-0}" == "1" ]]; then
+            [[ "$*" == *"--dump-json-metadata"* ]] && exit 1
+            echo "Version: 1"
+            exit 0
+        fi
+        if [[ "${TS_CRYPTSETUP_FAIL:-0}" == "1" ]] && [[ "$*" == *"--dump-json-metadata"* ]]; then
+            exit 1
+        fi
+        if [[ "$*" == *"--dump-json-metadata"* ]]; then
+            cat "${TS_HEADER:?}"
+        else
+            echo "Version: 2"
+        fi
+        ;;
+    luksUUID)
+        [[ "${TS_LUKSUUID_FAIL:-0}" == "1" ]] && exit 1
+        echo "${TS_UUID:-11111111-2222-3333-4444-555555555555}"
+        ;;
+    isLuks) exit 0 ;;
+    status) echo "device: /dev/sda" ;;
+    *) exit 0 ;;
+esac

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Test stub for tpm2_getcap: exits successfully without touching any TPM.
+printf 'tpm2_getcap %s\n' "$*" >>"${TS_LOG:?}"
+exit 0

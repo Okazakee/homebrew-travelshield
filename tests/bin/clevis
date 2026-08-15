@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Test stub for clevis operating on a virtual LUKS header (TS_HEADER JSON).
+# Real Clevis LUKS2 tokens store only the JWE ciphertext; the pin/policy
+# live in the decoded JWE.  The stub therefore keeps the list output in a
+# companion file (TS_CLEVIS_LIST) and treats it as the source of truth for
+# `luks list`, keeping it consistent on bind/unbind.
+# Failure modes:
+#   TS_CLEVIS_LIST_FAIL=1  -> luks list fails
+#   TS_CLEVIS_FAIL_SLOT=N  -> unbind of slot N fails
+#   TS_CLEVIS_CANCEL=1     -> unbind "succeeds" without deleting anything
+printf 'clevis %s\n' "$*" >>"${TS_LOG:?}"
+case "$1" in
+    luks)
+        case "$2" in
+            list)
+                [[ "${TS_CLEVIS_LIST_FAIL:-0}" == "1" ]] && exit 1
+                cat "${TS_CLEVIS_LIST:?}" 2>/dev/null || exit 1
+                ;;
+            unbind)
+                # extract -s SLOT
+                slot=""; prev=""; a=""
+                for a in "$@"; do
+                    [[ "$prev" == "-s" ]] && slot="$a"
+                    prev="$a"
+                done
+                [[ -n "$slot" ]] || exit 1
+                [[ "${TS_CLEVIS_CANCEL:-0}" == "1" ]] && exit 0
+                [[ "${TS_CLEVIS_FAIL_SLOT:-}" == "$slot" ]] && exit 1
+                # remove the keyslot and tokens referencing it
+                jq --arg s "$slot" \
+                    'del(.keyslots[$s]) |
+                     .tokens |= with_entries(select( ((.value.keyslots // []) | map(tostring) | index($s)) | not ))' \
+                    "${TS_HEADER:?}" >"${TS_HEADER}.tmp" && mv "${TS_HEADER}.tmp" "${TS_HEADER}"
+                # drop the list record for that slot
+                sed -i "/^${slot}: /d" "${TS_CLEVIS_LIST:?}"
+                ;;
+            bind)
+                cfg="${@: -1}"
+                # No-op bind: command succeeds but creates no binding.
+                [[ "${TS_CLEVIS_NOOP:-0}" == "1" ]] && exit 0
+                new_ks=$(jq -r '((.keyslots | keys | map(tonumber) | max // -1) + 1) | tostring' "${TS_HEADER:?}")
+                jq --argjson cfg "$cfg" --arg ks "$new_ks" '
+                    ((.tokens | keys | map(tonumber) | max // -1) + 1) as $tid |
+                    .keyslots[$ks] = {"type":"luks2","key_size":64,"af":{"type":"luks1"},"area":{},"stripes":4000,"priority":"normal"} |
+                    .tokens[($tid|tostring)] = {"type":"clevis","keyslots":[$ks],"jwe":"<jwe>"}' \
+                    "${TS_HEADER:?}" >"${TS_HEADER}.tmp" && mv "${TS_HEADER}.tmp" "${TS_HEADER}"
+                printf '%s: tpm2 %s\n' "$new_ks" "'$cfg'" >>"${TS_CLEVIS_LIST:?}"
+                ;;
+            *) exit 0 ;;
+        esac
+        ;;
+    *) exit 0 ;;
+esac

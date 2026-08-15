@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Test stub for systemd-cryptenroll on a virtual LUKS header.
+# --tpm2-device enrollment adds a new systemd-tpm2 token/keyslot (pcrs as
+# array, bank recorded).  --wipe-slot=tpm2 removes ALL systemd-tpm2 tokens
+# and their keyslots; --wipe-slot=N (numeric) removes keyslot N and any
+# token referencing it (mirrors systemd's slot+token cleanup).
+# Failure modes:
+#   TS_SYSTEMD_FAIL=1      -> any operation fails (nothing changed)
+#   TS_SYSTEMD_WIPE_FAIL=1 -> wipes fail (enrollment may still succeed)
+printf 'systemd-cryptenroll %s\n' "$*" >>"${TS_LOG:?}"
+[[ "${TS_SYSTEMD_FAIL:-0}" == "1" ]] && exit 1
+# No-op enrollment: command succeeds but creates no token (raced/no-op).
+[[ "${TS_SYSTEMD_NOOP:-0}" == "1" ]] && exit 0
+
+if [[ "$*" == *"--tpm2-device"* ]]; then
+    pcrs_arg="7:sha256"
+    [[ "$*" =~ --tpm2-pcrs=([^ ]+) ]] && pcrs_arg="${BASH_REMATCH[1]}"
+    pcrs="${pcrs_arg%%:*}" bank="${pcrs_arg##*:}"
+    jq --arg pcrs "$pcrs" --arg bank "$bank" '
+        ((.keyslots | keys | map(tonumber) | max // -1) + 1) as $ks |
+        ((.tokens | keys | map(tonumber) | max // -1) + 1) as $tid |
+        .keyslots[($ks|tostring)] = {"type":"luks2","key_size":64,"af":{"type":"luks1"},"area":{},"stripes":4000,"priority":"normal"} |
+        .tokens[($tid|tostring)] = {"type":"systemd-tpm2","keyslots":[($ks|tostring)],"tpm2-pcrs":[($pcrs|tonumber)],"tpm2-pcr-bank":$bank}' \
+        "${TS_HEADER:?}" >"${TS_HEADER}.tmp" && mv "${TS_HEADER}.tmp" "${TS_HEADER}"
+fi
+
+if [[ "$*" == *"--wipe-slot"* ]]; then
+    [[ "${TS_SYSTEMD_WIPE_FAIL:-0}" == "1" ]] && exit 1
+    arg=""
+    for arg in "$@"; do
+        [[ "$arg" == --wipe-slot=* ]] || continue
+        sel="${arg#--wipe-slot=}"
+        if [[ "$sel" == "tpm2" ]]; then
+            ks=$(jq -r '[.tokens | to_entries[] | select(.value.type=="systemd-tpm2") | .value.keyslots[]] | unique | .[]' "${TS_HEADER:?}")
+            if [[ -n "$ks" ]]; then
+                jq --argjson ks "$(printf '%s' "$ks" | jq -Rsc 'split("\n") | map(select(length>0))')" \
+                    '.tokens |= with_entries(select(.value.type != "systemd-tpm2")) |
+                     .keyslots |= with_entries(select( (.key | IN($ks[])) | not ))' \
+                    "${TS_HEADER:?}" >"${TS_HEADER}.tmp" && mv "${TS_HEADER}.tmp" "${TS_HEADER}"
+            fi
+        else
+            jq --arg s "$sel" \
+                'del(.keyslots[$s]) |
+                 .tokens |= with_entries(select( ((.value.keyslots // []) | map(tostring) | index($s)) | not ))' \
+                "${TS_HEADER:?}" >"${TS_HEADER}.tmp" && mv "${TS_HEADER}.tmp" "${TS_HEADER}"
+        fi
+    done
+fi
+exit 0

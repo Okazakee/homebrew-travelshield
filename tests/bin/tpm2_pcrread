@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Test stub for tpm2_pcrread: emits the modern YAML-ish output format.
+# TS_PCR = 64-hex digest (without 0x prefix) for PCR 7.
+printf 'tpm2_pcrread %s\n' "$*" >>"${TS_LOG:?}"
+echo "sha256:"
+printf '    7 : 0x%s\n' "${TS_PCR:-0000000000000000000000000000000000000000000000000000000000000000}"

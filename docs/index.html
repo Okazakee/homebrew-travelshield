@@ -3,7 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TravelShield — TPM2 LUKS Travel Mode Manager</title>
+<title>TravelShield - TPM2 LUKS Travel Mode Manager</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="TravelShield - TPM2 LUKS Travel Mode Manager">
+<meta property="og:description" content="Arm your disk encryption for the road. One keystroke to lock it down. TravelShield detects TPM2 auto-unlock on LUKS and toggles Travel Mode instantly.">
+<meta property="og:image" content="og.png">
+<meta property="og:url" content="https://travelshield.okazakee.dev/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0b0c0f">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -181,12 +192,40 @@
 
   /* Install */
   .install-block {
+    position: relative;
     background: var(--bg-elevated);
     border: 1px solid var(--border);
     border-radius: 6px;
-    padding: 14px 16px;
+    padding: 14px 52px 14px 16px;
     margin: 12px 0;
     overflow-x: auto;
+  }
+
+  .copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    border: 1px solid var(--border);
+    background: var(--terminal-bg);
+    color: var(--fg-dim);
+    border-radius: 4px;
+    padding: 5px 8px;
+    font: inherit;
+    font-size: 10px;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .copy-btn:hover,
+  .copy-btn:focus-visible {
+    color: var(--fg);
+    border-color: var(--accent-blue);
+    outline: none;
+  }
+
+  .copy-btn.copied {
+    color: var(--accent-green);
+    border-color: var(--accent-green);
   }
   .install-block pre {
     margin: 0;
@@ -269,7 +308,7 @@
     <div>
       <p>
         TravelShield detects whether TPM2 auto-unlock is active on your LUKS-encrypted root
-        filesystem and lets you toggle <strong>Travel Mode</strong> on or off instantly — no Enter key required.
+        filesystem and lets you toggle <strong>Travel Mode</strong> on or off instantly - no Enter key required.
       </p>
       <p style="margin-top: 16px; color: var(--fg-dim);">
         Single-key navigation • PCR7 fingerprinting • Distro-agnostic • systemd-cryptenroll & clevis-luks
@@ -285,7 +324,7 @@
 <span class="blue">║</span>  <span class="yellow">TravelShield   TPM2 LUKS Manager</span>            <span class="blue">║</span>
 <span class="blue">╠══════════════════════════════════════════════╣</span>
 <span class="blue">║</span>  Device : luks-abc123                        <span class="blue">║</span>
-<span class="blue">║</span>  Status : <span class="red">ARMED — passphrase required</span>        <span class="blue">║</span>
+<span class="blue">║</span>  Status : <span class="red">ARMED - passphrase required</span>        <span class="blue">║</span>
 <span class="blue">║</span>  Backend: systemd-cryptenroll                <span class="blue">║</span>
 <span class="blue">╠══════════════════════════════════════════════╣</span>
 <span class="blue">║</span>  <span class="blue">[T]</span> Toggle travel mode                      <span class="blue">║</span>
@@ -308,9 +347,11 @@
       With the TPM slot active, anyone who powers on your machine gets straight to the desktop.
       TravelShield lets you temporarily <strong>disable TPM auto-unlock</strong> so only your LUKS
       passphrase can decrypt the disk. When you're back in a safe place, re-enable it with the same tool.
+      (Non-TPM automatic unlockers — e.g. Clevis <code>tang</code> — are reported but never removed;
+      if one is configured, TravelShield does not claim "passphrase required".)
     </p>
     <p style="color: var(--fg-dim); font-size: 12px; margin-top: 12px;">
-      Background reading: <a href="https://0pointer.net/blog/unlocking-luks2-volumes-with-tpm2-fido2-pkcs11-security-hardware-on-systemd-248.html" target="_blank" rel="noopener">Unlocking LUKS2 volumes with TPM2, FIDO2, PKCS#11 — 0pointer</a>
+      Background reading: <a href="https://0pointer.net/blog/unlocking-luks2-volumes-with-tpm2-fido2-pkcs11-security-hardware-on-systemd-248.html" target="_blank" rel="noopener">Unlocking LUKS2 volumes with TPM2, FIDO2, PKCS#11 - 0pointer</a>
     </p>
   </section>
 
@@ -318,22 +359,36 @@
     <h2>Travel Mode</h2>
     <div class="compare">
       <div class="card armed">
-        <h3>[ARMED] — ON</h3>
+        <h3>[ARMED] - ON</h3>
         <ul>
-          <li>TPM slot wiped</li>
-          <li>Passphrase required at boot</li>
+          <li>Verified: no supported TPM2 auto-unlock binding remains</li>
+          <li>Passphrase required at boot (unless a non-TPM unlocker is reported)</li>
           <li>Safe for border crossings, transit, shared spaces</li>
         </ul>
       </div>
       <div class="card disarmed">
-        <h3>[DISARMED] — OFF</h3>
+        <h3>[DISARMED] - OFF</h3>
         <ul>
-          <li>TPM slot enrolled</li>
+          <li>TPM binding enrolled and sealed to PCR7 (sha256)</li>
           <li>Auto-unlock via TPM2</li>
           <li>Convenient at home or in a trusted environment</li>
         </ul>
       </div>
     </div>
+    <p style="margin-top: 16px; font-size: 13px;">
+      <strong>STALE</strong> = binding present but PCR7 diagnostic mismatch (never "token absent").
+      <strong>UNKNOWN</strong> = header cannot be classified safely (no toggling, never ARMED).
+      <strong>ERROR</strong> = last operation failed or was partial (residual state shown).
+      ARMED is only reported after a fresh header inspection proves zero supported TPM bindings.
+    </p>
+    <p style="margin-top: 12px; font-size: 13px; color: var(--fg-dim);">
+      v2.0.2 and older enrolled Clevis with an empty <code>{}</code> policy — <strong>no PCR policy at
+      all</strong>. If you enrolled with an old version, use <code>[R]</code> Re-enroll to replace the
+      binding with a PCR7-sealed one. Recovery safety is structural: TravelShield refuses removal when
+      no passphrase keyslot survives, requires a typed confirmation, and never claims your recovery
+      material is verified. The stored PCR7 fingerprint is diagnostic only; PCR7 is tied to Secure Boot
+      state and certificates, not to one unique boot image.
+    </p>
   </section>
 
   <section>
@@ -341,12 +396,14 @@
 
     <span class="install-label">Homebrew (Linuxbrew)</span>
     <div class="install-block">
+      <button class="copy-btn" type="button" aria-label="Copy command">copy</button>
       <pre>brew tap Okazakee/travelshield
 brew install travelshield</pre>
     </div>
 
     <span class="install-label">Direct download</span>
     <div class="install-block">
+      <button class="copy-btn" type="button" aria-label="Copy command">copy</button>
       <pre>curl -O https://raw.githubusercontent.com/Okazakee/homebrew-travelshield/main/travelshield.sh
 chmod +x travelshield.sh
 sudo ./travelshield.sh</pre>
@@ -354,6 +411,7 @@ sudo ./travelshield.sh</pre>
 
     <span class="install-label">Run</span>
     <div class="install-block">
+      <button class="copy-btn" type="button" aria-label="Copy command">copy</button>
       <pre>sudo travelshield</pre>
     </div>
   </section>
@@ -367,11 +425,11 @@ sudo ./travelshield.sh</pre>
       </div>
       <div class="feat">
         <h4>clevis-luks</h4>
-        <p>Fallback backend. Supports Clevis TPM2 policy bindings for distros not on systemd 248+.</p>
+        <p>Fallback backend. Binds with an explicit PCR7 policy (sha256 bank, PCR 7) — never the insecure empty config.</p>
       </div>
       <div class="feat">
-        <h4>PCR7 Fingerprinting</h4>
-        <p>Stores a SHA-256 hash of PCR7 after enrollment. Detects stale bindings after BIOS or firmware updates.</p>
+        <h4>PCR7 Diagnostics</h4>
+        <p>Stores a SHA-256 digest of PCR7 per volume. Diagnostic only — it never authorizes state; a mismatch is STALE, never "token absent". PCR7 relates to Secure Boot state, not a unique boot image.</p>
       </div>
       <div class="feat">
         <h4>Initramfs Reminder</h4>
@@ -379,7 +437,7 @@ sudo ./travelshield.sh</pre>
       </div>
       <div class="feat">
         <h4>Distro-Agnostic Discovery</h4>
-        <p>Locates your root LUKS device via lsblk, findmnt, and blkid — no hardcoded paths, works across Arch, Debian, Fedora, Void, Alpine, and more.</p>
+        <p>Locates your root LUKS device via lsblk, findmnt, and blkid - no hardcoded paths, works across Arch, Debian, Fedora, Void, Alpine, and more. Requires jq.</p>
       </div>
       <div class="feat">
         <h4>Single-Key TUI</h4>
@@ -393,6 +451,40 @@ sudo ./travelshield.sh</pre>
     Released into the public domain under <a href="https://unlicense.org/">The Unlicense</a>.
   </footer>
 </div>
+
+
+<script>
+  document.querySelectorAll('.copy-btn').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const block = button.closest('.install-block');
+      const pre = block?.querySelector('pre');
+      if (!pre) return;
+
+      const text = pre.innerText;
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        textarea.remove();
+      }
+
+      const previous = button.textContent;
+      button.textContent = 'copied';
+      button.classList.add('copied');
+      setTimeout(() => {
+        button.textContent = previous;
+        button.classList.remove('copied');
+      }, 1400);
+    });
+  });
+</script>
 
 </body>
 </html>

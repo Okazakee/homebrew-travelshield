@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Test stub for sudo: pass-through; -n/-v simulate credential validation.
+# TS_SUDO_DENIED=1 -> all sudo calls fail (simulates unavailable credentials).
+if [[ "${TS_SUDO_DENIED:-0}" == "1" ]]; then
+    exit 1
+fi
+case "$1" in
+    -n|-v) exit 0 ;;
+    *) exec "$@" ;;
+esac

@@ -2,8 +2,8 @@
 class Travelshield < Formula
   desc "Single-key TUI to toggle TPM2 LUKS auto-unlock — arm your disk for the road"
   homepage "https://github.com/Okazakee/homebrew-travelshield"
-  url "https://github.com/Okazakee/homebrew-travelshield/archive/refs/tags/v2.0.3.tar.gz"
-  sha256 "e3a1c0388434e9f03737f66b44e81922e8e45c3fb3e41aa37a65709cffe43470"
+  url "https://github.com/Okazakee/homebrew-travelshield/archive/refs/tags/v2.0.4.tar.gz"
+  sha256 "46e5283350b2ccd5726ab5c3a4d2f3b1aaeb56432e2012dd91e25aac17569371"
 
   license "Unlicense"
 

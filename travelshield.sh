@@ -21,7 +21,7 @@
 
 set -euo pipefail
 
-VERSION="2.0.3"
+VERSION="2.0.4"
 
 # ── Colors (printf for portability) ──
 RED='\033[0;31m'
@@ -509,18 +509,26 @@ ensure_sudo() {
 # ─────────────────────────────
 # Advisory per-volume lock (TravelShield instances only)
 # ─────────────────────────────
-# The lock lives under the root-owned mode-0700 state directory, never in
-# attacker-writable /tmp: as root, a predictable /tmp name could be
-# pre-planted as a symlink and followed during open.  Creation failure is
-# fatal (fail closed).
+# Root: the lock lives under the root-owned mode-0700 state directory —
+# a predictable /tmp name could be pre-planted as a symlink and followed
+# by root during open.  Non-root: the process owns the lock file, so a
+# user-scoped directory is safe (no root symlink issue) and keeps the
+# non-root invocation path working.  Creation failure is fatal (fail
+# closed).
 LOCK_FD=""
 acquire_lock() {
     [[ -n "$INV_UUID" ]] || return 0
-    if ! sudo install -d -m 700 "$STATE_DIR" 2>/dev/null; then
-        print_error "Cannot create state directory $STATE_DIR (locking impossible)."
-        exit 1
+    local lock_dir
+    if [[ "$(id -u)" == "0" ]]; then
+        if ! sudo install -d -m 700 "$STATE_DIR" 2>/dev/null; then
+            print_error "Cannot create state directory $STATE_DIR (locking impossible)."
+            exit 1
+        fi
+        lock_dir="$STATE_DIR"
+    else
+        lock_dir="${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}"
     fi
-    local lock="${STATE_DIR}/travelshield-${INV_UUID}.lock"
+    local lock="${lock_dir}/travelshield-${INV_UUID}.lock"
     if ! exec {LOCK_FD}>"$lock" 2>/dev/null; then
         print_error "Cannot open lock file $lock."
         exit 1

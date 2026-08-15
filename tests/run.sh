@@ -191,6 +191,13 @@ LUKS_DEVICE=/dev/mapper/tsroot
 printf '== Classification ==\n'
 
 reset_env; fixture_no_tokens; collect_now
+INV_UUID="locktest-0001"
+if acquire_lock 2>/dev/null; then ok "non-root lock acquired"; else bad "non-root lock failed"; fi
+check "non-root lock file exists" "1" "$([[ -e "${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/travelshield-${INV_UUID}.lock" ]] && echo 1 || echo 0)"
+exec {LOCK_FD}>&- 2>/dev/null || true
+INV_UUID="$TS_UUID"
+
+reset_env; fixture_no_tokens; collect_now
 check "no tokens -> ARMED" "ARMED" "$(classify_inventory)"
 
 reset_env; fixture_systemd_one; collect_now
@@ -579,7 +586,7 @@ fi
 printf '== Misc ==\n'
 
 check "sourcing does not run main" "OK" "$(bash -c 'source "$1" >/dev/null 2>&1; echo OK' _ "$ROOT/travelshield.sh")"
-check "version string" "TravelShield 2.0.3" "$("$ROOT/travelshield.sh" --version)"
+check "version string" "TravelShield 2.0.4" "$("$ROOT/travelshield.sh" --version)"
 
 # ── Summary ──
 echo
